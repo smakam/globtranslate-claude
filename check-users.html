@@ -6,21 +6,41 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
         import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+        // WARNING: This file contains exposed Firebase configuration
+        // For security, this should load from environment variables or be removed
+        // This is a development utility that should not be deployed to production
+        
         const firebaseConfig = {
-            apiKey: "AIzaSyBVc-00Ir8E7eo6EenDYndxuFh7KAuUp-w",
-            authDomain: "trans-claude.firebaseapp.com",
-            projectId: "trans-claude",
-            storageBucket: "trans-claude.firebasestorage.app",
-            messagingSenderId: "1012605251086",
-            appId: "1:1012605251086:web:5057da611607a4e7d2965f",
-            measurementId: "G-99XDVM4SD6"
+            apiKey: "[REMOVED_FOR_SECURITY]",
+            authDomain: "[REMOVED_FOR_SECURITY]",
+            projectId: "[REMOVED_FOR_SECURITY]", 
+            storageBucket: "[REMOVED_FOR_SECURITY]",
+            messagingSenderId: "[REMOVED_FOR_SECURITY]",
+            appId: "[REMOVED_FOR_SECURITY]",
+            measurementId: "[REMOVED_FOR_SECURITY]"
         };
+        
+        // Display security warning
+        document.addEventListener('DOMContentLoaded', function() {
+            const warningDiv = document.createElement('div');
+            warningDiv.style.backgroundColor = '#ffeb3b';
+            warningDiv.style.border = '2px solid #ff9800';
+            warningDiv.style.padding = '15px';
+            warningDiv.style.margin = '10px 0';
+            warningDiv.innerHTML = '<strong>⚠️ SECURITY WARNING:</strong> Firebase credentials have been removed for security. Configure environment variables to use this tool.';
+            document.body.insertBefore(warningDiv, document.body.firstChild);
+        });
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         async function queryUsers() {
             try {
+                // Check if configuration is valid
+                if (firebaseConfig.apiKey === '[REMOVED_FOR_SECURITY]') {
+                    throw new Error('Firebase configuration not available. Please configure environment variables.');
+                }
+                
                 console.log('Querying users collection...');
                 const usersCollection = collection(db, 'users');
                 const snapshot = await getDocs(usersCollection);

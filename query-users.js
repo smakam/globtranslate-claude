@@ -1,15 +1,27 @@
 const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, getDocs } = require('firebase/firestore');
 
+// Load Firebase configuration from environment variables
+require('dotenv').config();
+
 const firebaseConfig = {
-  apiKey: "AIzaSyBVc-00Ir8E7eo6EenDYndxuFh7KAuUp-w",
-  authDomain: "trans-claude.firebaseapp.com",
-  projectId: "trans-claude",
-  storageBucket: "trans-claude.firebasestorage.app",
-  messagingSenderId: "1012605251086",
-  appId: "1:1012605251086:web:5057da611607a4e7d2965f",
-  measurementId: "G-99XDVM4SD6"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
+
+// Validate required environment variables
+const requiredVars = ['REACT_APP_FIREBASE_API_KEY', 'REACT_APP_FIREBASE_PROJECT_ID'];
+const missingVars = requiredVars.filter(varName => !process.env[varName]);
+if (missingVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingVars);
+  console.error('Please ensure .env file is properly configured');
+  process.exit(1);
+}
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
