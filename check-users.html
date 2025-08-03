@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Users Query</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVc-00Ir8E7eo6EenDYndxuFh7KAuUp-w",
+            authDomain: "trans-claude.firebaseapp.com",
+            projectId: "trans-claude",
+            storageBucket: "trans-claude.firebasestorage.app",
+            messagingSenderId: "1012605251086",
+            appId: "1:1012605251086:web:5057da611607a4e7d2965f",
+            measurementId: "G-99XDVM4SD6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function queryUsers() {
+            try {
+                console.log('Querying users collection...');
+                const usersCollection = collection(db, 'users');
+                const snapshot = await getDocs(usersCollection);
+                
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `<h2>Found ${snapshot.size} users:</h2>`;
+                
+                if (snapshot.size === 0) {
+                    resultDiv.innerHTML += '<p>No users found in the database.</p>';
+                    return;
+                }
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const userDiv = document.createElement('div');
+                    userDiv.style.border = '1px solid #ccc';
+                    userDiv.style.margin = '10px 0';
+                    userDiv.style.padding = '10px';
+                    userDiv.innerHTML = `
+                        <strong>Firebase UID:</strong> ${doc.id}<br>
+                        <strong>User ID:</strong> ${data.id}<br>
+                        <strong>Username:</strong> ${data.username}<br>
+                        <strong>Language:</strong> ${data.language}<br>
+                        <strong>Online:</strong> ${data.isOnline}<br>
+                        <strong>Last Seen:</strong> ${data.lastSeen?.toDate ? data.lastSeen.toDate() : data.lastSeen}<br>
+                    `;
+                    resultDiv.appendChild(userDiv);
+                });
+            } catch (error) {
+                console.error('Error querying users:', error);
+                document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        window.queryUsers = queryUsers;
+    </script>
+</head>
+<body>
+    <h1>Firebase Users Query</h1>
+    <button onclick="queryUsers()">Query Users</button>
+    <div id="result"></div>
+</body>
+</html>
