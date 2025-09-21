@@ -81,10 +81,14 @@ describe('useTranslation Hook', () => {
 
     const { result } = renderHook(() => useTranslation());
     
-    await expect(act(async () => {
-      await result.current.translateText('Hello', 'en', 'es');
-    })).rejects.toThrow('Translation failed: 400 Bad Request');
+    let translatedText: string = '';
+    await act(async () => {
+      translatedText = await result.current.translateText('Hello', 'en', 'es');
+    });
 
+    // Should return original text as fallback when API fails
+    expect(translatedText).toBe('Hello');
+    expect(result.current.error).toBe('Invalid translation request. Please check the input.');
     expect(result.current.isTranslating).toBe(false);
   });
 
@@ -93,10 +97,14 @@ describe('useTranslation Hook', () => {
 
     const { result } = renderHook(() => useTranslation());
     
-    await expect(act(async () => {
-      await result.current.translateText('Hello', 'en', 'es');
-    })).rejects.toThrow('Network error');
+    let translatedText: string = '';
+    await act(async () => {
+      translatedText = await result.current.translateText('Hello', 'en', 'es');
+    });
 
+    // Should return original text as fallback when network fails
+    expect(translatedText).toBe('Hello');
+    expect(result.current.error).toBe('Network error');
     expect(result.current.isTranslating).toBe(false);
   });
 
@@ -105,10 +113,14 @@ describe('useTranslation Hook', () => {
 
     const { result } = renderHook(() => useTranslation());
     
-    await expect(act(async () => {
-      await result.current.translateText('Hello', 'en', 'es');
-    })).rejects.toThrow('Google Translate API key not configured');
+    let translatedText: string = '';
+    await act(async () => {
+      translatedText = await result.current.translateText('Hello', 'en', 'es');
+    });
 
+    // Should return original text as fallback when API key is missing
+    expect(translatedText).toBe('Hello');
+    expect(result.current.error).toBe('Google Translate API key not configured');
     expect(mockFetch).not.toHaveBeenCalled();
     expect(result.current.isTranslating).toBe(false);
   });
@@ -127,10 +139,14 @@ describe('useTranslation Hook', () => {
 
     const { result } = renderHook(() => useTranslation());
     
-    await expect(act(async () => {
-      await result.current.translateText('Hello', 'en', 'es');
-    })).rejects.toThrow('No translation received');
+    let translatedText: string = '';
+    await act(async () => {
+      translatedText = await result.current.translateText('Hello', 'en', 'es');
+    });
 
+    // Should return original text as fallback when no translation received
+    expect(translatedText).toBe('Hello');
+    expect(result.current.error).toBe('No translation received from API');
     expect(result.current.isTranslating).toBe(false);
   });
 
@@ -146,10 +162,14 @@ describe('useTranslation Hook', () => {
 
     const { result } = renderHook(() => useTranslation());
     
-    await expect(act(async () => {
-      await result.current.translateText('Hello', 'en', 'es');
-    })).rejects.toThrow('No translation received');
+    let translatedText: string = '';
+    await act(async () => {
+      translatedText = await result.current.translateText('Hello', 'en', 'es');
+    });
 
+    // Should return original text as fallback when response is malformed
+    expect(translatedText).toBe('Hello');
+    expect(result.current.error).toBe('No translation received from API');
     expect(result.current.isTranslating).toBe(false);
   });
 

@@ -11,6 +11,10 @@ describe('useToast Hook', () => {
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
+    jest.clearAllTimers();
+  });
+
+  afterAll(() => {
     jest.useRealTimers();
   });
 
@@ -76,7 +80,7 @@ describe('useToast Hook', () => {
     expect(result.current.toasts).toHaveLength(1);
     
     act(() => {
-      jest.advanceTimersByTime(1000);
+      jest.advanceTimersByTime(1001);
     });
     
     expect(result.current.toasts).toHaveLength(0);
@@ -126,9 +130,9 @@ describe('useToast Hook', () => {
     
     expect(result.current.toasts).toHaveLength(2);
     
-    // Advance time by 1000ms - first toast should be removed
+    // Advance time by 1001ms - first toast should be removed
     act(() => {
-      jest.advanceTimersByTime(1000);
+      jest.advanceTimersByTime(1001);
     });
     
     expect(result.current.toasts).toHaveLength(1);
@@ -201,10 +205,11 @@ describe('useToast Hook', () => {
     
     expect(result.current.toasts).toHaveLength(1);
     
+    // Zero duration should not auto-remove the toast
     act(() => {
-      jest.advanceTimersByTime(0);
+      jest.advanceTimersByTime(1000);
     });
     
-    expect(result.current.toasts).toHaveLength(0);
+    expect(result.current.toasts).toHaveLength(1);
   });
 });

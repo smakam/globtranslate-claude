@@ -20,6 +20,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, userId }) => {
     const newUsername = e.target.value;
     setUsername(newUsername);
     
+    // Clear any existing error when username changes
+    if (error) {
+      setError('');
+    }
+    
     // Reset existing user state when username changes
     if (isExistingUser) {
       setIsExistingUser(false);

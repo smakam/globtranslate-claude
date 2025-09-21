@@ -3,17 +3,24 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Onboarding from '../Onboarding';
 
-// Mock the userService
+// Mock all external dependencies
+jest.mock('../../constants/languages', () => ({
+  SUPPORTED_LANGUAGES: [
+    { code: 'en', name: 'English' },
+    { code: 'es', name: 'Spanish' },
+    { code: 'fr', name: 'French' }
+  ]
+}));
+
 jest.mock('../../services/userService', () => ({
   userService: {
-    checkUsernameAvailability: jest.fn(),
-    getUserByUsername: jest.fn()
+    checkUsernameAvailability: jest.fn().mockResolvedValue(true),
+    getUserByUsername: jest.fn().mockResolvedValue(null)
   }
 }));
 
-// Mock VersionDisplay component
 jest.mock('../VersionDisplay', () => {
-  return function MockVersionDisplay() {
+  return function VersionDisplay() {
     return <div data-testid="version-display">Version Display</div>;
   };
 });
@@ -60,33 +67,30 @@ describe('Onboarding Component', () => {
   });
 
   test('validates minimum username length', async () => {
-    const user = userEvent.setup();
     render(<Onboarding {...defaultProps} />);
     
     const usernameInput = screen.getByLabelText(/choose a username/i);
     const submitButton = screen.getByRole('button', { name: /get started/i });
     
-    await user.type(usernameInput, 'ab'); // Less than 3 characters
-    await user.click(submitButton);
+    await userEvent.type(usernameInput, 'ab'); // Less than 3 characters
+    await userEvent.click(submitButton);
     
     expect(screen.getByText('Username must be at least 3 characters')).toBeInTheDocument();
     expect(defaultProps.onComplete).not.toHaveBeenCalled();
   });
 
   test('validates required username', async () => {
-    const user = userEvent.setup();
     render(<Onboarding {...defaultProps} />);
     
     const submitButton = screen.getByRole('button', { name: /get started/i });
     
-    await user.click(submitButton);
+    await userEvent.click(submitButton);
     
     expect(screen.getByText('Username is required')).toBeInTheDocument();
     expect(defaultProps.onComplete).not.toHaveBeenCalled();
   });
 
   test('handles new user registration', async () => {
-    const user = userEvent.setup();
     const mockOnComplete = jest.fn();
     mockUserService.checkUsernameAvailability.mockResolvedValue(true); // Available
     
@@ -96,9 +100,9 @@ describe('Onboarding Component', () => {
     const languageSelect = screen.getByLabelText(/your language/i);
     const submitButton = screen.getByRole('button', { name: /get started/i });
     
-    await user.type(usernameInput, 'newuser');
-    await user.selectOptions(languageSelect, 'es');
-    await user.click(submitButton);
+    await userEvent.type(usernameInput, 'newuser');
+    await userEvent.selectOptions(languageSelect, 'es');
+    await userEvent.click(submitButton);
     
     await waitFor(() => {
       expect(mockOnComplete).toHaveBeenCalledWith('newuser', 'es', null);
@@ -106,7 +110,6 @@ describe('Onboarding Component', () => {
   });
 
   test('handles existing user login', async () => {
-    const user = userEvent.setup();
     const mockOnComplete = jest.fn();
     const existingUser = {
       id: 'existing-123',
@@ -122,8 +125,8 @@ describe('Onboarding Component', () => {
     const usernameInput = screen.getByLabelText(/choose a username/i);
     const submitButton = screen.getByRole('button', { name: /get started/i });
     
-    await user.type(usernameInput, 'existinguser');
-    await user.click(submitButton);
+    await userEvent.type(usernameInput, 'existinguser');
+    await userEvent.click(submitButton);
     
     await waitFor(() => {
       expect(screen.getByText('Logging in as existing user...')).toBeInTheDocument();
@@ -135,7 +138,6 @@ describe('Onboarding Component', () => {
   });
 
   test('updates display ID when username changes for existing user', async () => {
-    const user = userEvent.setup();
     const existingUser = {
       id: 'existing-123',
       username: 'existinguser',
@@ -152,7 +154,7 @@ describe('Onboarding Component', () => {
     expect(screen.getByText('test-user-123')).toBeInTheDocument();
     
     // Type username that exists
-    await user.type(usernameInput, 'existinguser');
+    await userEvent.type(usernameInput, 'existinguser');
     
     await waitFor(() => {
       expect(screen.getByText('existing-123')).toBeInTheDocument();
@@ -160,7 +162,6 @@ describe('Onboarding Component', () => {
   });
 
   test('handles username check error gracefully', async () => {
-    const user = userEvent.setup();
     const mockOnComplete = jest.fn();
     
     mockUserService.checkUsernameAvailability.mockRejectedValue(new Error('Network error'));
@@ -170,8 +171,8 @@ describe('Onboarding Component', () => {
     const usernameInput = screen.getByLabelText(/choose a username/i);
     const submitButton = screen.getByRole('button', { name: /get started/i });
     
-    await user.type(usernameInput, 'testuser');
-    await user.click(submitButton);
+    await userEvent.type(usernameInput, 'testuser');
+    await userEvent.click(submitButton);
     
     // Should still complete despite error
     await waitFor(() => {
@@ -180,7 +181,6 @@ describe('Onboarding Component', () => {
   });
 
   test('shows loading state during submission', async () => {
-    const user = userEvent.setup();
     let resolvePromise: (value: any) => void;
     const checkPromise = new Promise((resolve) => {
       resolvePromise = resolve;
@@ -193,8 +193,8 @@ describe('Onboarding Component', () => {
     const usernameInput = screen.getByLabelText(/choose a username/i);
     const submitButton = screen.getByRole('button', { name: /get started/i });
     
-    await user.type(usernameInput, 'testuser');
-    await user.click(submitButton);
+    await userEvent.type(usernameInput, 'testuser');
+    await userEvent.click(submitButton);
     
     expect(screen.getByText('Checking...')).toBeInTheDocument();
     expect(submitButton).toBeDisabled();
@@ -208,20 +208,18 @@ describe('Onboarding Component', () => {
   });
 
   test('language selection works correctly', async () => {
-    const user = userEvent.setup();
     render(<Onboarding {...defaultProps} />);
     
     const languageSelect = screen.getByLabelText(/your language/i);
     
-    await user.selectOptions(languageSelect, 'es');
+    await userEvent.selectOptions(languageSelect, 'es');
     expect(languageSelect).toHaveValue('es');
     
-    await user.selectOptions(languageSelect, 'fr');
+    await userEvent.selectOptions(languageSelect, 'fr');
     expect(languageSelect).toHaveValue('fr');
   });
 
   test('handles onComplete failure', async () => {
-    const user = userEvent.setup();
     const mockOnComplete = jest.fn().mockRejectedValue(new Error('Complete failed'));
     
     mockUserService.checkUsernameAvailability.mockResolvedValue(true);
@@ -231,8 +229,8 @@ describe('Onboarding Component', () => {
     const usernameInput = screen.getByLabelText(/choose a username/i);
     const submitButton = screen.getByRole('button', { name: /get started/i });
     
-    await user.type(usernameInput, 'testuser');
-    await user.click(submitButton);
+    await userEvent.type(usernameInput, 'testuser');
+    await userEvent.click(submitButton);
     
     await waitFor(() => {
       expect(screen.getByText('Failed to complete setup. Please try again.')).toBeInTheDocument();
@@ -240,7 +238,6 @@ describe('Onboarding Component', () => {
   });
 
   test('trims whitespace from username', async () => {
-    const user = userEvent.setup();
     const mockOnComplete = jest.fn();
     mockUserService.checkUsernameAvailability.mockResolvedValue(true);
     
@@ -249,8 +246,8 @@ describe('Onboarding Component', () => {
     const usernameInput = screen.getByLabelText(/choose a username/i);
     const submitButton = screen.getByRole('button', { name: /get started/i });
     
-    await user.type(usernameInput, '  testuser  ');
-    await user.click(submitButton);
+    await userEvent.type(usernameInput, '  testuser  ');
+    await userEvent.click(submitButton);
     
     await waitFor(() => {
       expect(mockOnComplete).toHaveBeenCalledWith('testuser', 'en', null);
@@ -264,7 +261,6 @@ describe('Onboarding Component', () => {
   });
 
   test('handles very long username within limits', async () => {
-    const user = userEvent.setup();
     const longUsername = 'a'.repeat(20); // Maximum allowed
     mockUserService.checkUsernameAvailability.mockResolvedValue(true);
     
@@ -272,24 +268,23 @@ describe('Onboarding Component', () => {
     
     const usernameInput = screen.getByLabelText(/choose a username/i);
     
-    await user.type(usernameInput, longUsername);
+    await userEvent.type(usernameInput, longUsername);
     
     expect(usernameInput).toHaveValue(longUsername);
   });
 
   test('clears error when username changes', async () => {
-    const user = userEvent.setup();
     render(<Onboarding {...defaultProps} />);
     
     const usernameInput = screen.getByLabelText(/choose a username/i);
     const submitButton = screen.getByRole('button', { name: /get started/i });
     
     // First, create an error
-    await user.click(submitButton);
+    await userEvent.click(submitButton);
     expect(screen.getByText('Username is required')).toBeInTheDocument();
     
     // Then type to clear the error
-    await user.type(usernameInput, 'test');
+    await userEvent.type(usernameInput, 'test');
     
     await waitFor(() => {
       expect(screen.queryByText('Username is required')).not.toBeInTheDocument();

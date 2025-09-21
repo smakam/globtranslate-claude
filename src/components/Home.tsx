@@ -54,6 +54,7 @@ const Home: React.FC<HomeProps> = ({
               <button
                 onClick={onToggleDarkMode}
                 className="p-2 bg-white bg-opacity-30 hover:bg-opacity-40 rounded-lg transition-all duration-200"
+                aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} theme`}
               >
                 {isDarkMode ? (
                   <Sun size={18} className="text-white" />

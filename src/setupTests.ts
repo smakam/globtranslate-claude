@@ -92,32 +92,11 @@ global.console = {
   log: jest.fn()
 };
 
-// Mock all child components
-jest.mock('./components/Home', () => {
-  return function MockHome() {
-    const mockReact = require('react');
-    return mockReact.createElement('div', { 'data-testid': 'home-component' }, 'Home Component');
-  };
-});
-
-jest.mock('./components/Chat', () => {
-  return function MockChat() {
-    const mockReact = require('react');
-    return mockReact.createElement('div', { 'data-testid': 'chat-component' }, 'Chat Component');
-  };
-});
-
-jest.mock('./components/Onboarding', () => {
-  return function MockOnboarding() {
-    const mockReact = require('react');
-    return mockReact.createElement('div', { 'data-testid': 'onboarding-component' }, 'Onboarding Component');
-  };
-});
-
+// Mock only shared/utility components to avoid test interference
 jest.mock('./components/VersionDisplay', () => {
   return function MockVersionDisplay() {
     const mockReact = require('react');
-    return mockReact.createElement('div', { 'data-testid': 'version-display' }, 'Version Display');
+    return mockReact.createElement('div', { 'data-testid': 'version-display' }, 'v1.0.0');
   };
 });
 

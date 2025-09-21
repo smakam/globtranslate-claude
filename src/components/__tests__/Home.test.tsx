@@ -1,17 +1,25 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Home from '../Home';
 
-// Mock the child components
+// Mock all external dependencies with consistent patterns
+jest.mock('lucide-react', () => ({
+  Moon: ({ className }: any) => <span className={className}>Moon</span>,
+  Sun: ({ className }: any) => <span className={className}>Sun</span>,
+  MessageCircle: ({ className }: any) => <div className={className}>MessageCircle</div>,
+  Sparkles: ({ className }: any) => <div className={className}>Sparkles</div>
+}));
+
+// Mock child components with proper default exports
 jest.mock('../QRCodeDisplay', () => {
-  return function MockQRCodeDisplay({ userId, username }: any) {
+  return function QRCodeDisplay({ userId, username }: any) {
     return <div data-testid="qr-code-display">QR Code for {username} ({userId})</div>;
   };
 });
 
 jest.mock('../ConnectFriend', () => {
-  return function MockConnectFriend({ onConnect }: any) {
+  return function ConnectFriend({ onConnect }: any) {
     return (
       <div data-testid="connect-friend">
         <button onClick={() => onConnect('friend-123', 'Friend User')}>
@@ -62,25 +70,23 @@ describe('Home Component', () => {
   });
 
   test('calls onToggleDarkMode when theme toggle button is clicked', async () => {
-    const user = userEvent.setup();
     const mockToggleDarkMode = jest.fn();
     
     render(<Home {...defaultProps} onToggleDarkMode={mockToggleDarkMode} />);
     
-    const themeToggleButton = screen.getByRole('button', { name: /theme/i });
-    await user.click(themeToggleButton);
+    const themeToggleButton = screen.getByLabelText('Switch to dark theme');
+    await userEvent.click(themeToggleButton);
     
     expect(mockToggleDarkMode).toHaveBeenCalledTimes(1);
   });
 
   test('calls onSignOut when sign out button is clicked', async () => {
-    const user = userEvent.setup();
     const mockSignOut = jest.fn();
     
     render(<Home {...defaultProps} onSignOut={mockSignOut} />);
     
     const signOutButton = screen.getByRole('button', { name: /sign out/i });
-    await user.click(signOutButton);
+    await userEvent.click(signOutButton);
     
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
@@ -89,16 +95,16 @@ describe('Home Component', () => {
     render(<Home {...defaultProps} isDarkMode={false} />);
     
     // In light mode, should show Moon icon for switching to dark
-    const themeButton = screen.getByRole('button', { name: /theme/i });
-    expect(themeButton).toBeInTheDocument();
+    expect(screen.getByLabelText('Switch to dark theme')).toBeInTheDocument();
+    expect(screen.getByText('Moon')).toBeInTheDocument();
   });
 
   test('displays correct theme icon in dark mode', () => {
     render(<Home {...defaultProps} isDarkMode={true} />);
     
     // In dark mode, should show Sun icon for switching to light
-    const themeButton = screen.getByRole('button', { name: /theme/i });
-    expect(themeButton).toBeInTheDocument();
+    expect(screen.getByLabelText('Switch to light theme')).toBeInTheDocument();
+    expect(screen.getByText('Sun')).toBeInTheDocument();
   });
 
   test('applies correct CSS classes for light mode', () => {
@@ -109,13 +115,12 @@ describe('Home Component', () => {
   });
 
   test('handles friend connection through ConnectFriend component', async () => {
-    const user = userEvent.setup();
     const mockConnectFriend = jest.fn();
     
     render(<Home {...defaultProps} onConnectFriend={mockConnectFriend} />);
     
     const connectButton = screen.getByText('Connect Friend');
-    await user.click(connectButton);
+    await userEvent.click(connectButton);
     
     expect(mockConnectFriend).toHaveBeenCalledWith('friend-123', 'Friend User');
   });
@@ -177,23 +182,22 @@ describe('Home Component', () => {
     expect(screen.getByRole('button', { name: /sign out/i })).toBeInTheDocument();
     
     // Theme toggle button should be accessible
-    const themeToggle = screen.getByRole('button', { name: /theme/i });
+    const themeToggle = screen.getByLabelText('Switch to dark theme');
     expect(themeToggle).toBeInTheDocument();
     expect(themeToggle).not.toBeDisabled();
   });
 
   test('handles rapid theme toggles', async () => {
-    const user = userEvent.setup();
     const mockToggleDarkMode = jest.fn();
     
     render(<Home {...defaultProps} onToggleDarkMode={mockToggleDarkMode} />);
     
-    const themeToggleButton = screen.getByRole('button', { name: /theme/i });
+    const themeToggleButton = screen.getByLabelText('Switch to dark theme');
     
     // Rapid clicks
-    await user.click(themeToggleButton);
-    await user.click(themeToggleButton);
-    await user.click(themeToggleButton);
+    await userEvent.click(themeToggleButton);
+    await userEvent.click(themeToggleButton);
+    await userEvent.click(themeToggleButton);
     
     expect(mockToggleDarkMode).toHaveBeenCalledTimes(3);
   });
